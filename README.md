@@ -11,5 +11,6 @@ test2
 
 9/11/21 To connect MongoDB: 'Authentication failed' several times because of pwd validation errors!!
 
-9/16/21 Models folder??
+9/16/21 Models folder??   SOLVED!!
+
 
