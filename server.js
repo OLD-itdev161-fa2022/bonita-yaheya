@@ -24,17 +24,20 @@ app.use(
  */
 app.get('/', (req, res) =>
     res.send('http get request sent to root api endpoint')
+    
 
 );
 /**
  * @route GET /
  * @desc Test endpoint
+ * 
  */
 app.post('/api/users',
     [
         check('name', 'Please enter your name').not().isEmpty(),
         check('email', 'Please enter a valid email').isEmail(),
-        check('password', 'Please enter a password with 6 or more characters').isLength({ min: 6 })
+        check('password', 'Please enter a password with 6 or more characters').isLength({ min: 6 }),
+        check('age', 'Please enter a valid age').not().isEmpty(),
 
     ],
 
