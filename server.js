@@ -4,7 +4,7 @@ import { check, validationResult } from 'express-validator';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import config from 'cofig';
+import config from 'config';
 import User from './models/User';
 
 //Initialize express application
@@ -31,6 +31,7 @@ app.get('/', (req, res) =>
     
 
 );
+app.get('/api', (req, res) =>res.send('http get request sent to api'));
 /**
  * @route POST api/users
  * @desc Register user
@@ -67,8 +68,10 @@ app.post('/api/users',
                 user = new User({ 
                     name: name,
                     email: email,
-                    password: password    
+                    password: password
+                        
                 });
+            
 
                 // Encrypt the password
                 const salt = await bcrypt.genSalt(10);
@@ -76,6 +79,7 @@ app.post('/api/users',
 
                 // Save to the db and return
                 await user.save();
+                
 
                 // Generate and return a JWT token
                 const payload = {
@@ -101,6 +105,6 @@ app.post('/api/users',
 );
 
 //Connection listener
-const port = 5000;
+const port = 8080;
 app.listen(port, () => console.log(`Express server running on port ${port}`));
 
