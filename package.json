@@ -9,21 +9,30 @@
     "cors": "^2.8.5",
     "esm": "^3.2.25",
     "express": "^4.17.1",
-    "express-validator": "^6.12.1",
-    "mongoose": "^6.0.5"
+    "express-validator": "^6.13.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^6.0.10"
   },
   "devDependencies": {
-    "concurrently": "^6.2.1",
-    "nodemon": "^2.0.12"
+    "concurrently": "^6.3.0",
+    "nodemon": "^2.0.13"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node -r esm server.js",
     "server": "nodemon -r esm server.js",
     "client": "npm start --prefix client",
-    "dev": "concurrently \"npm run server\" \"npm run client\" "
+    "dev": "concurrently \"npm run server\" \"npm run client\""
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itdev161-fa2022/bonita-yaheya.git"
+  },
+  "bugs": {
+    "url": "https://github.com/itdev161-fa2022/bonita-yaheya/issues"
+  },
+  "homepage": "https://github.com/itdev161-fa2022/bonita-yaheya#readme"
 }
