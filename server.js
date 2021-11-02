@@ -29,10 +29,10 @@ app.use(
  */
 app.get('/', (req, res) =>
     res.send('http get request sent to root api endpoint')
-    
+
 
 );
-app.get('/api', (req, res) =>res.send('http get request sent to api'));
+app.get('/api', (req, res) => res.send('http get request sent to api'));
 /**
  * @route POST api/users
  * @desc Register user
@@ -42,13 +42,13 @@ app.post('/api/users',
     [
         check('name', 'Please enter your name').not().isEmpty(),
         check('email', 'Please enter a valid email').isEmail(),
-        check('password', 
-              'Please enter a password with 6 or more characters')
-              .isLength({ min: 6 }),
+        check('password',
+            'Please enter a password with 6 or more characters')
+            .isLength({ min: 6 }),
 
 
     ],
-      // Callback method
+    // Callback method
     async (req, res) => {
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
@@ -57,22 +57,22 @@ app.post('/api/users',
             const { name, email, password } = req.body;
             try {
                 // Check if user exists
-                let user = await User.findOne({ email: email});
+                let user = await User.findOne({ email: email });
                 if (user) {
                     return res
-                      .status(400)
-                      .json({ errors: [{ msg: 'User already exists'}] });
+                        .status(400)
+                        .json({ errors: [{ msg: 'User already exists' }] });
 
                 }
 
                 // Create a new user
-                user = new User({ 
+                user = new User({
                     name: name,
                     email: email,
                     password: password
-                        
+
                 });
-            
+
 
                 // Encrypt the password
                 const salt = await bcrypt.genSalt(10);
@@ -80,49 +80,35 @@ app.post('/api/users',
 
                 // Save to the db and return
                 await user.save();
-                
+
 
                 // Generate and return a JWT token
-                const payload = {
-                    user: {
-                        id: user.id
-                    }
-                };
-
-                jwt.sign(
-                    payload,
-                    config.get('jwtSecret'),
-                    { expiresIn: '10hr'},
-                    (err, token) => {
-                        if (err) throw err;
-                        res.json({ token: token});
-                    }
-                );
-            }   catch (error) {
+                returnToken(user, res);
+            } catch (error) {
                 res.status(500).send('Server error');
             }
         }
     }
 );
- const returnToken = (user, response) => {
-     const payload = {
-         user: {
-             id: user.id
-         }
-     };
+const returnToken = (user, res) => {
+    const payload = {
+        user: {
+            id: user.id
+        }
+    };
 
-     jwt.sign(
-         payload,
-         config.get('jwtSecret'),
-         { expiresIn: '10hr'},
-         (err, token) => {
-             if (err) throw err;
-             res.json({ token: token});
-         
-         
-         }
-     );
- };
+    jwt.sign(
+        payload,
+        config.get('jwtSecret'),
+        { expiresIn: '10hr' },
+        (err, token) => {
+            if (err) throw err;
+            res.json({ token: token });
+
+
+        }
+    );
+};
 
 /**
  * @route Get api/auth
@@ -142,7 +128,7 @@ app.get('/api/auth', auth, async (req, res) => {
  * @route Post api/login
  * @desc Login user
   */
- app.post(
+app.post(
     '/api/login',
     [
         check('email', 'Please enter a valid email').isEmail(),
@@ -156,24 +142,33 @@ app.get('/api/auth', auth, async (req, res) => {
             const { email, password } = req.body;
             try {
                 // Check if user exists
-                let user = await User.findOne({ email: email});
-                if (user) {
+                let user = await User.findOne({ email: email });
+                if (!user) {
                     return res
-                      .status(400)
-                      .json({ errors: [{ msg: 'Invalid email or password' }] });
+                        .status(400)
+                        .json({ errors: [{ msg: 'Invalid email or password' }] });
 
                 }
-                 // Generate and return a JWT token
-                 returnToken(user, res);
-            }   catch (error) {
+
+                // Check password
+                const match = await bcrypt.compare(password, user.password);
+                if (!match) {
+                    return res
+                        .status(400)
+                        .json({ errors: [{ msg: 'Invalid email or password' }] });
+                }
+
+
+                // Generate and return a JWT token
+                returnToken(user, res);
+            } catch (error) {
                 res.status(500).send('Server error');
             }
         }
     }
- );
- 
+);
 
 //Connection listener
-const port = 8080;
+const port = 5000;
 app.listen(port, () => console.log(`Express server running on port ${port}`));
 

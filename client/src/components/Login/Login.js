@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useHistory } from 'react-router-dom';
 
-const Login = ({ authenticateUser}) => {
+const Login = ({ authenticateUser }) => {
     let history = useHistory();
     const [userData, setUserData] = useState({
         email: '',
@@ -22,6 +22,7 @@ const Login = ({ authenticateUser}) => {
     }
 
     const loginUser = async () => {
+        //e.preventDefault()
         const newUser = {
             email: email, 
             password: password
@@ -34,14 +35,15 @@ const Login = ({ authenticateUser}) => {
             }
         
         const body = JSON.stringify(newUser);
-        const res = await axios.post('http://localhost:8080/api/login', body, config);
+        const res = await axios.post('http://localhost:5000/api/login', body, config);
 
-        // Store user data and redirect
+        // Store user data 
         localStorage.setItem('token', res.data.token);
         history.push('/')
+
     } catch (error) {
         // Clear user data
-        localStorage.setItem('token');
+        localStorage.removeItem('token');
 
         setErrorData({
             ...errors,
@@ -49,12 +51,12 @@ const Login = ({ authenticateUser}) => {
         })
     }
 
-    authenticateUser();
+        authenticateUser();
 }
 
     return (
       <div>
-          <h2>Log In</h2>
+          <h3>Log In</h3>
           <div>
           <input
                 type='text'
@@ -76,11 +78,10 @@ const Login = ({ authenticateUser}) => {
               <button onClick={() => loginUser()}>Log In</button>
           </div>
           <div>
-          {errors && errors.map(error => 
+            {errors && errors.map(error => 
             <div key={error.msg}>{error.msg}</div>)}
           </div>
     </div>
-
 
     )   
 }

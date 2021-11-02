@@ -13,7 +13,7 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    axios.get('http://localhost:8080')
+    axios.get('http://localhost:5000')
     .then((response)  => {
       this.setState({
         data: response.data
@@ -26,8 +26,8 @@ class App extends React.Component {
 
   this.authenticateUser();
 }
-authenticateUser = () => {
-  const token = localStorage.getItem('token');
+  authenticateUser = () => {
+    const token = localStorage.getItem('token');
 
   if(!token) {
     localStorage.removeItem('user')
@@ -39,14 +39,21 @@ authenticateUser = () => {
         'x-auth-token': token
       }
     }
-    axios.get('http://localhost:8080/api/auth', config)
+    axios.get('http://localhost:5000/api/auth', config)
     .then((response) => {
+      localStorage.setItem('user', response.data.name)
+      this.setState({ user: response.data.name })
+    })
+    .catch(error => {
       localStorage.removeItem('user');
       this.setState({ user: null });
       console.error(`Error logging in: ${error}`);
-    })
+
+    })     
+      
   }
 }
+
 logOut = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
@@ -56,9 +63,10 @@ logOut = () => {
   render() {
     let { user, data } = this.state;
     const authProps = {
-      authenticateUser: this.authenticateUser,
+      authenticateUser: this.authenticateUser
     }
-    return (
+
+    return ( 
       <Router>
       <div className="App">
         <header className="App-header">
@@ -74,10 +82,7 @@ logOut = () => {
              {user ?
              <Link to="" onClick={this.logOut}>Log out</Link> :
              <Link to="/login">Log in </Link>
-
-
              }
-             <Link to='/login'>Login</Link>
            </li>
          </ul>   
         </header>
@@ -94,8 +99,13 @@ logOut = () => {
             }
           </Route>
           <Switch>
-            <Route path='/register' component={Register} />
-            <Route path='/login' component={Login} />
+            <Route 
+            exact path='/register' 
+            render={() => <Register {...authProps} />} />
+            <Route 
+            exact path='/login' 
+            render={() => <Login {...authProps} />} />
+            
           </Switch>
           </main>
       </div>
@@ -103,7 +113,6 @@ logOut = () => {
 
     );
   }
-}
-
+  }
 
 export default App;

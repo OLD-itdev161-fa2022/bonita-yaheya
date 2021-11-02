@@ -13,8 +13,8 @@ const auth = (req, res, next) => {
     try {
         const decodedToken = jwt.verify(token, secret);
         req.user = decodedToken.user;
-
         next();
+         
     }  catch (err) {
         res
          .status(401)
