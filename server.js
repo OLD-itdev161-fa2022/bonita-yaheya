@@ -91,6 +91,81 @@ app.post('/api/users',
         }
     }
 );
+/**
+ * @route Get api/auth
+ * @desc Authenticate user
+  */
+ app.get('/api/auth', auth, async (req, res) => {
+
+    try {
+        const user = await User.findById(req.user.id);
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).send('Unknown server error');
+    }
+});
+/**
+ * @route Post api/login
+ * @desc Login user
+  */
+ app.post(
+    '/api/login',
+    [
+        check('email', 'Please enter a valid email').isEmail(),
+        check('password', 'A password is required').exists()
+    ],
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(422).json({ errors: errors.array() });
+        } else {
+            const { email, password } = req.body;
+            try {
+                // Check if user exists
+                let user = await User.findOne({ email: email });
+                if (!user) {
+                    return res
+                        .status(400)
+                        .json({ errors: [{ msg: 'Invalid email or password' }] });
+
+                }
+
+                // Check password
+                const match = await bcrypt.compare(password, user.password);
+                if (!match) {
+                    return res
+                        .status(400)
+                        .json({ errors: [{ msg: 'Invalid email or password' }] });
+                }
+
+
+                // Generate and return a JWT token
+                returnToken(user, res);
+            } catch (error) {
+                res.status(500).send('Server error');
+            }
+        }
+    }
+);
+const returnToken = (user, res) => {
+    const payload = {
+        user: {
+            id: user.id
+        }
+    };
+
+    jwt.sign(
+        payload,
+        config.get('jwtSecret'),
+        { expiresIn: '10hr' },
+        (err, token) => {
+            if (err) throw err;
+            res.json({ token: token });
+
+
+        }
+    );
+};
 
 // Post endpoints
 app.post
@@ -181,10 +256,10 @@ app.get('/api/posts', auth, async (req, res) => {
  /**
   * 
   * @route DELETE api/posts/:id 
-  * @Delete a post 
+  * @desc Delete a post 
   */
 
- app.delete('/api/posts/:id', auth, async (res, res) => {
+ app.delete('/api/posts/:id', auth, async (req, res) => {
      try {
          const post = await Post.findById(req.params.id);
 
@@ -199,7 +274,7 @@ app.get('/api/posts', auth, async (req, res) => {
          await post.remove();
 
          res.json({ msg: 'Post deleted successfully' });
-     }catch (error) {
+     }  catch (error) {
          console.error(error);
          res.status(500).send('Server error');
      }
@@ -217,7 +292,7 @@ app.get('/api/posts', auth, async (req, res) => {
 
          // Make sure the post was found
          if (!post) {
-             return.res.status(404).json({ msg: 'Post not found' });
+             return res.status(404).json({ msg: 'Post not found' });
          }
          // Make sure the request user created the post
          if (post.user.toString() !== req.user.id) {
@@ -237,84 +312,6 @@ app.get('/api/posts', auth, async (req, res) => {
 
      }
  });
-
-const returnToken = (user, res) => {
-    const payload = {
-        user: {
-            id: user.id
-        }
-    };
-
-    jwt.sign(
-        payload,
-        config.get('jwtSecret'),
-        { expiresIn: '10hr' },
-        (err, token) => {
-            if (err) throw err;
-            res.json({ token: token });
-
-
-        }
-    );
-};
-
-/**
- * @route Get api/auth
- * @desc Authenticate user
-  */
-app.get('/api/auth', auth, async (req, res) => {
-
-    try {
-        const user = await User.findById(req.user.id);
-        res.status(200).json(user);
-    } catch (error) {
-        res.status(500).send('Unknown server error');
-    }
-});
-
-/**
- * @route Post api/login
- * @desc Login user
-  */
-app.post(
-    '/api/login',
-    [
-        check('email', 'Please enter a valid email').isEmail(),
-        check('password', 'A password is required').exists()
-    ],
-    async (req, res) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(422).json({ errors: errors.array() });
-        } else {
-            const { email, password } = req.body;
-            try {
-                // Check if user exists
-                let user = await User.findOne({ email: email });
-                if (!user) {
-                    return res
-                        .status(400)
-                        .json({ errors: [{ msg: 'Invalid email or password' }] });
-
-                }
-
-                // Check password
-                const match = await bcrypt.compare(password, user.password);
-                if (!match) {
-                    return res
-                        .status(400)
-                        .json({ errors: [{ msg: 'Invalid email or password' }] });
-                }
-
-
-                // Generate and return a JWT token
-                returnToken(user, res);
-            } catch (error) {
-                res.status(500).send('Server error');
-            }
-        }
-    }
-);
 
 //Connection listener
 const port = 5000;
