@@ -4,10 +4,13 @@ import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import './App.css';
 import Register from './components/Register/Register';
 import Login from './components/Login/Login';
+import PostList from './components/PostList/PostList';
+import Post from './components/Post/Post';
 
 class App extends React.Component {
   state = {
     posts: [],
+    post: null,
     token: null,
     user: null
   };
@@ -78,7 +81,14 @@ logOut = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
   this.setState({ user: null, token: null });
-}
+};
+
+viewPost = post => {
+  console.log(`view ${post.title}`);
+  this.setState({ 
+    post: post
+  });
+};
   
   render() {
     let { user, posts } = this.state;
@@ -107,18 +117,12 @@ logOut = () => {
          </ul>   
         </header>
         <main>
+        <Switch>
           <Route exact path='/'>
             {user ? (
             <React.Fragment>
               <div>Hello {user} !</div>
-              <div>
-                {posts.map(post => (
-                  <div key={post._id}>
-                    <h1>{post.title}</h1>
-                    <p>{post.body}</p>
-                </div>
-                ))}
-                </div>
+              <PostList posts ={posts} clickPost={this.viewPost} />   
               </React.Fragment> 
              ) : (
               <React.Fragment>
@@ -126,14 +130,17 @@ logOut = () => {
                 </React.Fragment>
             )}
           </Route>
-          <Switch>
+          <Route path='/posts/:postId'>
+            <Post post={post} />
+            </Route>
             <Route 
             exact path='/register' 
-            render={() => <Register {...authProps} />} />
+            render={() => <Register {...authProps} />} 
+            />
             <Route 
             exact path='/login' 
-            render={() => <Login {...authProps} />} />
-            
+            render={() => <Login {...authProps} />} 
+            />    
           </Switch>
           </main>
       </div>
