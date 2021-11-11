@@ -12,7 +12,7 @@ const connectDatabase = async () => {
             useNewUrlParser: true
             //useCreateIndex: true
         });
-    console.log('Connected to MongoDB');
+    console.log('Connected to MongoDB...');
     
     }catch (error) {
         console.error(error.message);
