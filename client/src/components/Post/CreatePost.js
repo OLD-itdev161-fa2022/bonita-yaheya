@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useHistory } from 'react-router-dom';
 import './styles.css';
 
-const CreatePost = ({ onPostCreated }) => {
+const CreatePost = ({ token, onPostCreated }) => {
     let history = useHistory();
     const [postData, setPostData] = useState({
         title: '',
@@ -16,13 +16,13 @@ const CreatePost = ({ onPostCreated }) => {
 
         setPostData({
             ...postData,
-            [name] : value
+            [name]: value
 
         });
     };
 
 const create = async () => {
-    if (title || !body) {
+    if (!title || !body) {
         console.log('Title and body are required');
     }else {
         const newPost = {
@@ -50,7 +50,7 @@ const create = async () => {
             onPostCreated(res.data);
             history.push('/');
         }   catch (error){
-            console.error (`Error creating post: ${server.response.data}`);
+            console.error (`Error creating post: ${error.response.data}`);
         }
       }
     };

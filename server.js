@@ -275,7 +275,7 @@ app.get('/api/posts', auth, async (req, res) => {
          await post.remove();
 
          res.json({ msg: 'Post deleted successfully' });
-     }catch (error) {
+     }   catch (error) {
          console.error(error);
          res.status(500).send('Server error');
      }
@@ -306,7 +306,7 @@ app.get('/api/posts', auth, async (req, res) => {
          await post.save();
 
          res.json(post);
-     } catch (error) {
+     }   catch (error) {
          console.error(error);
          res.status(500).send('Server error');
 

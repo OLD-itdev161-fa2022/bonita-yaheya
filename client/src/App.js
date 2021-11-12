@@ -65,7 +65,7 @@ loadData = () => {
       }
     };
     axios
-      .get('http://localhost:5000/api/posts', config)
+      .get(`http://localhost:5000/api/posts`, config)
       .then(response => {
         this.setState({
           posts: response.data
