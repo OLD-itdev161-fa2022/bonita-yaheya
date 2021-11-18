@@ -44,18 +44,7 @@ class App extends React.Component {
         { user: response.data.name,
           token: token
          },
-
-        () => {
-          this.loadData();
-        }
-       );
-      })
-
-         () => {
-           this.loadData();
-         }
-         
-         );
+      );
     })
 
     .catch(error => {
