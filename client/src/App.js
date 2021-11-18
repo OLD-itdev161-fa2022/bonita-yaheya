@@ -11,7 +11,8 @@ import EditPost from './components/Post/EditPost';
 
 class App extends React.Component {
   state = {
-    posts: [],
+
+    posts:[],
     post: null,
     token: null,
     user: null
@@ -19,7 +20,7 @@ class App extends React.Component {
 
   componentDidMount() {
     this.authenticateUser();
-}
+  }
   authenticateUser = () => {
     const token = localStorage.getItem('token');
 
@@ -31,7 +32,10 @@ class App extends React.Component {
     const config = {
       headers: {
         'x-auth-token': token
-      }
+ 
+    }
+    axios
+    .get('/api/auth', config)
     };
     axios.get('http://localhost:5000/api/auth', config)
     .then((response) => {
@@ -40,20 +44,51 @@ class App extends React.Component {
         { user: response.data.name,
           token: token
          },
+
+        () => {
+          this.loadData();
+        }
+       );
+      })
+
          () => {
            this.loadData();
          }
          
          );
     })
+
     .catch(error => {
       localStorage.removeItem('user');
       this.setState({ user: null });
       console.error(`Error logging in: ${error}`);
-
-    })     
-      
+    });        
   }
+};
+
+loadData = () => {
+  const { token } = this.state;
+
+  if (token) {
+    const config = {
+      headers: {
+        'x-auth-token': token
+      }
+    };
+    axios
+    .get('/api/posts', config)
+    .then(response => {
+      this.setState({
+        posts: response.data
+      });
+    })
+    .catch(error => {
+      console.error(`Error fetching data: ${error}`);
+    });
+  }
+
+};
+    
 }
 loadData = () => {
   const { token } = this.state;
@@ -78,6 +113,7 @@ loadData = () => {
       });
   }
 };
+
 
 logOut = () => {
   localStorage.removeItem('token');

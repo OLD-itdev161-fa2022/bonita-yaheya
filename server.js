@@ -8,6 +8,7 @@ import config from 'config';
 import User from './models/User';
 import Post from './models/Post';
 import auth from './middleware/auth';
+import path from 'path';
 
 //Initialize express application
 const app = express();
@@ -21,19 +22,11 @@ app.use(
     cors({
         origin: 'http://localhost:3000'
     })
-);
+  );
+
 
 //API endpoints
-/**
- * @route GET /
- * @desc Test endpoints
- */
-app.get('/', (req, res) =>
-    res.send('http get request sent to root api endpoint')
 
-
-);
-app.get('/api', (req, res) => res.send('http get request sent to api'));
 /**
  * @route POST api/users
  * @desc Register user
@@ -74,13 +67,67 @@ app.post('/api/users',
 
                 });
 
-
                 // Encrypt the password
                 const salt = await bcrypt.genSalt(10);
                 user.password = await bcrypt.hash(password, salt);
 
-                // Save to the db and return
+                // Save to the db and return: mongoose function
                 await user.save();
+
+                // Generate and return a JWT token
+                returnToken(user, res);
+            } catch (error) {
+                res.status(500).send('Server error');
+            }
+        }
+    }
+);
+/**
+ * @route Get api/auth
+ * @desc Authenticate user
+  */
+ app.get('/api/auth', auth, async (req, res) => {
+
+    try {
+        const user = await User.findById(req.user.id);
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).send('Unknown server error');
+    }
+});
+/**
+ * @route Post api/login
+ * @desc Login user
+  */
+app.post(
+    '/api/login',
+    [
+        check('email', 'Please enter a valid email').isEmail(),
+        check('password', 'A password is required').exists()
+    ],
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(422).json({ errors: errors.array() });
+        } else {
+            const { email, password } = req.body;
+            try {
+                // Check if user exists
+                let user = await User.findOne({ email: email });
+                if (!user) {
+                    return res
+                        .status(400)
+                        .json({ errors: [{ msg: 'Invalid email or password' }] });
+
+                }
+
+                // Check password
+                const match = await bcrypt.compare(password, user.password);
+                if (!match) {
+                    return res
+                        .status(400)
+                        .json({ errors: [{ msg: 'Invalid email or password' }] });
+                }
 
 
                 // Generate and return a JWT token
@@ -91,6 +138,7 @@ app.post('/api/users',
         }
     }
 );
+
 /**
  * @route Get api/auth
  * @desc Authenticate user
@@ -147,6 +195,7 @@ app.post('/api/users',
         }
     }
 );
+
 const returnToken = (user, res) => {
     const payload = {
         user: {
@@ -161,7 +210,6 @@ const returnToken = (user, res) => {
         (err, token) => {
             if (err) throw err;
             res.json({ token: token });
-
         }
     );
 };
@@ -188,7 +236,7 @@ app.post
 async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()){
-        res.status(400).json({ errors: errors.array() });
+        res.status(422).json({ errors: errors.array() });
     } else {
         const { title, body } = req.body;
         try {
@@ -253,7 +301,6 @@ app.get('/api/posts', auth, async (req, res) => {
 
      }
  });
-
  /**
   * 
   * @route DELETE api/posts/:id 
@@ -313,7 +360,19 @@ app.get('/api/posts', auth, async (req, res) => {
      }
  });
 
+// Serve build files in production
+if (process.env.NODE_ENV === 'production') {
+    // Set the build folder
+    app.use(express.static('client/build'));
+
+    // Route all requests to serve up the built index file
+    // (i.e. [current working directory]/client/build/index.html)
+    app.get('*', (req, res) => {
+        res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'));
+    });
+}
+
 //Connection listener
-const port = 5000;
+const port = process.env.PORT || 5000;
 app.listen(port, () => console.log(`Express server running on port ${port}`));
 
