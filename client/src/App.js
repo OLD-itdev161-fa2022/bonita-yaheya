@@ -13,7 +13,8 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    axios.get('http://localhost:5000')
+    axios
+    .get
     .then((response)  => {
       this.setState({
         data: response.data
@@ -39,7 +40,7 @@ class App extends React.Component {
         'x-auth-token': token
       }
     }
-    axios.get('http://localhost:5000/api/auth', config)
+    axios.get('/api/auth', config)
     .then((response) => {
       localStorage.setItem('user', response.data.name)
       this.setState({ user: response.data.name })
