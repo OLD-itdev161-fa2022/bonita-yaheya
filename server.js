@@ -23,7 +23,6 @@ app.use(
         origin: 'http://localhost:3000'
     })
 );
-
 /**
  * @route POST api/users
  * @desc Register user
