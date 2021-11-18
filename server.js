@@ -22,7 +22,11 @@ app.use(
     cors({
         origin: 'http://localhost:3000'
     })
-);
+  );
+
+
+//API endpoints
+
 /**
  * @route POST api/users
  * @desc Register user
@@ -134,6 +138,64 @@ app.post(
         }
     }
 );
+
+/**
+ * @route Get api/auth
+ * @desc Authenticate user
+  */
+ app.get('/api/auth', auth, async (req, res) => {
+
+    try {
+        const user = await User.findById(req.user.id);
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).send('Unknown server error');
+    }
+});
+/**
+ * @route Post api/login
+ * @desc Login user
+  */
+ app.post(
+    '/api/login',
+    [
+        check('email', 'Please enter a valid email').isEmail(),
+        check('password', 'A password is required').exists()
+    ],
+    async (req, res) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(422).json({ errors: errors.array() });
+        } else {
+            const { email, password } = req.body;
+            try {
+                // Check if user exists
+                let user = await User.findOne({ email: email });
+                if (!user) {
+                    return res
+                        .status(400)
+                        .json({ errors: [{ msg: 'Invalid email or password' }] });
+
+                }
+
+                // Check password
+                const match = await bcrypt.compare(password, user.password);
+                if (!match) {
+                    return res
+                        .status(400)
+                        .json({ errors: [{ msg: 'Invalid email or password' }] });
+                }
+
+
+                // Generate and return a JWT token
+                returnToken(user, res);
+            } catch (error) {
+                res.status(500).send('Server error');
+            }
+        }
+    }
+);
+
 const returnToken = (user, res) => {
     const payload = {
         user: {
@@ -148,13 +210,15 @@ const returnToken = (user, res) => {
         (err, token) => {
             if (err) throw err;
             res.json({ token: token });
-
-
         }
     );
 };
 
 // Post endpoints
+/**
+ * @route POST api/posts
+ * @desc Create post
+ */
 app.post
 ('/api/posts',
 [
@@ -258,14 +322,14 @@ app.get('/api/posts', auth, async (req, res) => {
          await post.remove();
 
          res.json({ msg: 'Post deleted successfully' });
-     }catch (error) {
+     }   catch (error) {
          console.error(error);
          res.status(500).send('Server error');
      }
  });
  /**
   * 
-  * @route PUT api/posts/:findById 
+  * @route PUT api/posts/:id 
   * @desc Update a post
   */
  app.put ('/api/posts/:id', auth, async (req, res) => {
@@ -289,7 +353,7 @@ app.get('/api/posts', auth, async (req, res) => {
          await post.save();
 
          res.json(post);
-     } catch (error) {
+     }   catch (error) {
          console.error(error);
          res.status(500).send('Server error');
 
@@ -307,6 +371,7 @@ if (process.env.NODE_ENV === 'production') {
         res.sendFile(path.resolve(__dirname, 'client', 'build', 'index.html'));
     });
 }
+
 //Connection listener
 const port = process.env.PORT || 5000;
 app.listen(port, () => console.log(`Express server running on port ${port}`));
